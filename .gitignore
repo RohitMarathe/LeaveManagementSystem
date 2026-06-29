@@ -39,6 +39,9 @@ ScaffoldingReadMe.txt
 # dotenv environment variables file
 .env
 
+# Publish Output
+publish/
+
 # Others
 ~$*
 *~
@@ -46,6 +49,18 @@ CodeCoverage/
 
 # MSBuild Binary and Structured Log
 *.binlog
+
+# Visual Studio
+.vs/
+
+# Visual Studio Code
+.vscode/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.rsuser
 
 # MSTest test Results
 [Tt]est[Rr]esult*/
