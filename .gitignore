@@ -70,3 +70,8 @@ CodeCoverage/
 *.VisualState.xml
 TestResult.xml
 nunit-*.xml
+
+# Visual Studio Publish Profiles
+**/Properties/PublishProfiles/*.pubxml.user
+**/Properties/PublishProfiles/*.publishsettings
+**/Properties/PublishProfiles/*.azurePubxml
