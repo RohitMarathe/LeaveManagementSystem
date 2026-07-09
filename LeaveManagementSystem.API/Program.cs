@@ -1,3 +1,4 @@
+using LeaveManagementSystem.API.Middleware;
 using LeaveManagementSystem.Application;
 using LeaveManagementSystem.Infrastructure;
 using Microsoft.Extensions.Logging.ApplicationInsights;
@@ -30,6 +31,8 @@ var logLevel = builder.Configuration.GetValue<LogLevel>("Logging:LogLevel:Defaul
 builder.Logging.AddFilter<ApplicationInsightsLoggerProvider>(string.Empty, logLevel);
 
 var app = builder.Build();
+
+app.UseGlobalExceptionMiddleware();
 
 app.UseHttpsRedirection();
 
