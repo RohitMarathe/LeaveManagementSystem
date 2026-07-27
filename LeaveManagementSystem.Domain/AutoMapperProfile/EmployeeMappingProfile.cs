@@ -1,4 +1,5 @@
-﻿using LeaveManagementSystem.Domain.Dtos.Employee;
+﻿using AutoMapper;
+using LeaveManagementSystem.Domain.Dtos.Employee;
 using LeaveManagementSystem.Domain.Entities;
 
 namespace LeaveManagementSystem.Domain.AutoMapperProfile

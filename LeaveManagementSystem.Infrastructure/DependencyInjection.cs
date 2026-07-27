@@ -13,27 +13,27 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace LeaveManagementSystem.Infrastructure;
 
-    public static class DependencyInjection
+public static class DependencyInjection
+{
+    public static IServiceCollection AddInfrastructure(
+        this IServiceCollection services,
+        IConfiguration configuration)
     {
-        public static IServiceCollection AddInfrastructure(
-            this IServiceCollection services,
-            IConfiguration configuration)
-        {
         // Register Database Context
-            services.AddDbContext<LeaveManagementDbContext>(options =>
-            {
-                options.UseSqlServer(
-                    configuration.GetConnectionString("DefaultConnection"));
-            });
+        services.AddDbContext<LeaveManagementDbContext>(options =>
+        {
+            options.UseSqlServer(
+                configuration.GetConnectionString("DefaultConnection"));
+        });
 
         // Register Repositories
-            services.AddScoped(
-                typeof(IGenericRepository<,>),
-                typeof(GenericRepository<,>));
+        services.AddScoped(
+            typeof(IGenericRepository<,>),
+            typeof(GenericRepository<,>));
 
-            services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+        services.AddScoped<IEmployeeRepository, EmployeeRepository>();
 
-            services.AddScoped<IUnitOfWork, UnitOfWork>();
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         services.AddScoped<IDocumentService, DocumentService>();
         services.AddScoped<IDocumentRepository, DocumentRepository>();
@@ -60,7 +60,7 @@ namespace LeaveManagementSystem.Infrastructure;
         // Register Blob Storage Service
         services.AddScoped<IStorageService, BlobStorageService>();
 
-            return services;
-        }
+        return services;
     }
 }
+
