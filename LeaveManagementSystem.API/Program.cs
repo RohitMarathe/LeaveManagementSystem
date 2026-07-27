@@ -1,3 +1,4 @@
+using LeaveManagementSystem.API.Middleware;
 using LeaveManagementSystem.Application;
 using LeaveManagementSystem.Infrastructure;
 using Microsoft.Extensions.Logging.ApplicationInsights;
@@ -6,8 +7,6 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
 
 // Register the Services
 builder.Services.AddApplication(); // Register application services
@@ -33,11 +32,7 @@ builder.Logging.AddFilter<ApplicationInsightsLoggerProvider>(string.Empty, logLe
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
+app.UseGlobalExceptionMiddleware();
 
 app.UseHttpsRedirection();
 

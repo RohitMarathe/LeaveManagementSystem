@@ -12,5 +12,15 @@ namespace LeaveManagementSystem.Infrastructure.Persistence.Context
         }
 
         public DbSet<Employee> Employees { get; set; }
+
+        public DbSet<Document> Documents { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.ApplyConfigurationsFromAssembly(
+                typeof(LeaveManagementDbContext).Assembly);
+        }
     }
 }
