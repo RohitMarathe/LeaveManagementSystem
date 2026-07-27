@@ -13,34 +13,27 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace LeaveManagementSystem.Infrastructure;
 
-public static class DependencyInjection
-{
-    public static IServiceCollection AddInfrastructure(
-        this IServiceCollection services,
-        IConfiguration configuration)
+    public static class DependencyInjection
     {
-        // Register Database Context
-        services.AddDbContext<LeaveManagementDbContext>(options =>
+        public static IServiceCollection AddInfrastructure(
+            this IServiceCollection services,
+            IConfiguration configuration)
         {
-            options.UseSqlServer(
-                configuration.GetConnectionString("DefaultConnection"),
-                sqlOptions =>
-                {
-                    sqlOptions.EnableRetryOnFailure(
-                        maxRetryCount: 5,
-                        maxRetryDelay: TimeSpan.FromSeconds(30),
-                        errorNumbersToAdd: null);
-                });
-        });
+        // Register Database Context
+            services.AddDbContext<LeaveManagementDbContext>(options =>
+            {
+                options.UseSqlServer(
+                    configuration.GetConnectionString("DefaultConnection"));
+            });
 
         // Register Repositories
-        services.AddScoped(
-            typeof(IGenericRepository<,>),
-            typeof(GenericRepository<,>));
+            services.AddScoped(
+                typeof(IGenericRepository<,>),
+                typeof(GenericRepository<,>));
 
-        services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+            services.AddScoped<IEmployeeRepository, EmployeeRepository>();
 
-        services.AddScoped<IUnitOfWork, UnitOfWork>();
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         services.AddScoped<IDocumentService, DocumentService>();
         services.AddScoped<IDocumentRepository, DocumentRepository>();
@@ -67,6 +60,7 @@ public static class DependencyInjection
         // Register Blob Storage Service
         services.AddScoped<IStorageService, BlobStorageService>();
 
-        return services;
+            return services;
+        }
     }
 }
