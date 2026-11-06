@@ -17,6 +17,8 @@ namespace LeaveManagementSystem.Infrastructure.Persistence.Context
 
         public DbSet<LeaveRequest> LeaveRequests { get; set; }
 
+        public DbSet<LeaveManagementSystem.Infrastructure.Persistence.Entities.OutboxMessage> OutboxMessages { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
