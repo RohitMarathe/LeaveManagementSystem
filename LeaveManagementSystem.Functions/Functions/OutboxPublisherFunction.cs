@@ -206,11 +206,21 @@ public sealed class OutboxPublisherFunction
             error,
             cancellationToken);
 
-        _logger.LogWarning(
-            exception,
-            "Scheduled Outbox event {EventId} for retry at {NextAttemptAtUtc}.",
-            message.Id,
-            nextAttemptAtUtc);
+        if (nextAttempt >= 10)
+        {
+            _logger.LogError(
+                exception,
+                "Outbox event {EventId} reached the maximum of 10 failed attempts and was flagged for operational review.",
+                message.Id);
+        }
+        else
+        {
+            _logger.LogWarning(
+                exception,
+                "Scheduled Outbox event {EventId} for retry at {NextAttemptAtUtc}.",
+                message.Id,
+                nextAttemptAtUtc);
+        }
     }
 
     private static ServiceBusMessage CreateServiceBusMessage(
