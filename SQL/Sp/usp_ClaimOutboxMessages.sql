@@ -33,7 +33,7 @@ BEGIN
         ;WITH MessagesToClaim AS
         (
             SELECT TOP (@BatchSize) *
-            FROM dbo.OutboxMessages WITH (UPDLOCK, READPAST, ROWLOCK)
+            FROM dbo.OutboxMessages WITH (UPDLOCK, READPAST, ROWLOCK, READCOMMITTEDLOCK)
             WHERE ProcessedAtUtc IS NULL
               AND FailedAtUtc IS NULL
               AND (NextAttemptAtUtc IS NULL OR NextAttemptAtUtc <= SYSUTCDATETIME())
