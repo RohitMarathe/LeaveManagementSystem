@@ -1,6 +1,5 @@
-﻿using LeaveManagementSystem.Application.Interfaces.Repositories;
+using LeaveManagementSystem.Application.Interfaces.Repositories;
 using LeaveManagementSystem.Infrastructure.Persistence.Context;
-using LeaveManagementSystem.Infrastructure.Persistence.Entities;
 
 namespace LeaveManagementSystem.Infrastructure.Persistence.Repositories;
 
@@ -33,11 +32,6 @@ public class UnitOfWork : IUnitOfWork
             _leaveRequestRepository ??= new LeaveRequestRepository(_context);
             return _leaveRequestRepository;
         }
-    }
-
-    public void AddOutboxMessage(OutboxMessage message)
-    {
-        _context.OutboxMessages.Add(message);
     }
 
     public async Task<int> SaveChangesAsync(
