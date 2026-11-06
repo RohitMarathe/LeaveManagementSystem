@@ -28,9 +28,12 @@ namespace LeaveManagementSystem.Infrastructure.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("Attempts")
+                        .HasDefaultValue(0)
                         .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedAtUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasDefaultValueSql("SYSUTCDATETIME()")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("EventType")
