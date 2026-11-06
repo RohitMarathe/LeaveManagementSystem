@@ -48,6 +48,15 @@ namespace LeaveManagementSystem.Infrastructure.Migrations
                     b.Property<DateTime?>("NextAttemptAtUtc")
                         .HasColumnType("datetime2");
 
+                    b.Property<Guid?>("LockId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("LockedUntilUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("FailedAtUtc")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Payload")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -60,7 +69,7 @@ namespace LeaveManagementSystem.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ProcessedAtUtc", "NextAttemptAtUtc", "CreatedAtUtc")
+                    b.HasIndex("ProcessedAtUtc", "FailedAtUtc", "NextAttemptAtUtc", "LockedUntilUtc", "CreatedAtUtc")
                         .HasDatabaseName("IX_OutboxMessages_PublishingStatus");
 
                     b.ToTable("OutboxMessages", (string)null);
