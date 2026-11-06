@@ -1,0 +1,19 @@
+meta {
+  name: Upload Document
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/api/Document/upload
+  body: multipartForm
+  auth: none
+}
+
+body:multipart-form {
+  employeeId: {{employeeId}}
+  fileName: test-document.txt
+  contentType: text/plain
+  fileSize: 26
+  fileStream: @./files/test-document.txt
+}
