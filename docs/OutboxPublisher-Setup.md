@@ -29,7 +29,7 @@ Do not commit the SQL connection string or any credentials to source control. Us
 The Function App needs:
 - Its existing system-assigned Managed Identity.
 - `Azure Service Bus Data Sender` on the Service Bus namespace.
-- Network access to the Azure SQL server and database permissions to execute the Outbox stored procedures and read/update `dbo.OutboxMessages`.
+- Network access to the Azure SQL server and `EXECUTE` permission on `dbo.usp_ClaimOutboxMessages`, `dbo.usp_MarkOutboxMessagePublished`, and `dbo.usp_ScheduleOutboxMessageRetry`. Because these procedures and the table are owned by `dbo`, SQL ownership chaining normally avoids granting the Function direct table read/update permissions.
 - Its `AzureWebJobsStorage` setting for Timer Trigger scheduling.
 
 The API's existing `ServiceBusConnection__fullyQualifiedNamespace` setting is for the Service Bus-trigger configuration. The publisher's client uses `ServiceBus__FullyQualifiedNamespace` as shown above.
