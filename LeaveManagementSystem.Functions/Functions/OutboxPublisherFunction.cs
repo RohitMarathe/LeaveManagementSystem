@@ -33,6 +33,11 @@ public sealed class OutboxPublisherFunction
         [TimerTrigger("%OutboxPublisherSchedule%")] TimerInfo timerInfo,
         CancellationToken cancellationToken)
     {
+        if (timerInfo.IsPastDue)
+        {
+            _logger.LogWarning("The Outbox Publisher timer invocation is running later than scheduled.");
+        }
+
         var lockId = Guid.NewGuid();
         var batchSize = GetBatchSize();
 
@@ -94,7 +99,7 @@ public sealed class OutboxPublisherFunction
 
                 if (batchMessages.Count > 0)
                 {
-                    await SendBatchAsync(messageBatch, batchMessages, lockId, cancellationToken);
+                    await SendBatchAsync(messageBatch!, batchMessages, lockId, cancellationToken);
                     messageBatch!.Dispose();
                     messageBatch = await _sender.CreateMessageBatchAsync(cancellationToken);
                     batchMessages = [];
@@ -138,20 +143,6 @@ public sealed class OutboxPublisherFunction
         try
         {
             await _sender.SendMessagesAsync(messageBatch, cancellationToken);
-
-            foreach (var message in batchMessages)
-            {
-                await _outboxRepository.MarkPublishedAsync(
-                    message.Id,
-                    lockId,
-                    DateTime.UtcNow,
-                    cancellationToken);
-
-                _logger.LogInformation(
-                    "Published Outbox event {EventId} of type {EventType}.",
-                    message.Id,
-                    message.EventType);
-            }
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
@@ -164,11 +155,30 @@ public sealed class OutboxPublisherFunction
             {
                 await ScheduleFailureAsync(message, lockId, exception, cancellationToken);
             }
+
+            return;
+        }
+
+        // Only update SQL after Service Bus confirms the batch send.
+        // If a SQL update fails, let the lease expire; a later duplicate is
+        // safer than falsely recording an event as published.
+        foreach (var message in batchMessages)
+        {
+            await _outboxRepository.MarkPublishedAsync(
+                message.Id,
+                lockId,
+                DateTime.UtcNow,
+                cancellationToken);
+
+            _logger.LogInformation(
+                "Published Outbox event {EventId} of type {EventType}.",
+                message.Id,
+                message.EventType);
         }
     }
 
     private async Task ScheduleFailureAsync(
-        LeaveManagementSystem.Application.Models.Outbox.OutboxMessageToPublish message,
+        OutboxMessageToPublish message,
         Guid lockId,
         Exception exception,
         CancellationToken cancellationToken)
