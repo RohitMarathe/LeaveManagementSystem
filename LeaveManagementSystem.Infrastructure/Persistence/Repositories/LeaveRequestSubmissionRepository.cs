@@ -2,6 +2,7 @@ using System.Data;
 using LeaveManagementSystem.Application.Interfaces.Repositories;
 using LeaveManagementSystem.Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace LeaveManagementSystem.Infrastructure.Persistence.Repositories;
 
@@ -43,12 +44,13 @@ public sealed class LeaveRequestSubmissionRepository
             await using var command = connection.CreateCommand();
             command.CommandText = "dbo.usp_SubmitLeaveRequestWithOutbox";
             command.CommandType = CommandType.StoredProcedure;
+            command.Transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
 
             AddParameter(command, "@EmployeeId", DbType.Int32, employeeId);
-            AddParameter(command, "@LeaveType", DbType.String, leaveType, 50);
+            AddParameter(command, "@LeaveType", DbType.String, leaveType, -1);
             AddParameter(command, "@StartDate", DbType.Date, startDate.ToDateTime(TimeOnly.MinValue));
             AddParameter(command, "@EndDate", DbType.Date, endDate.ToDateTime(TimeOnly.MinValue));
-            AddParameter(command, "@Reason", DbType.String, reason, 1000);
+            AddParameter(command, "@Reason", DbType.String, reason, -1);
             AddParameter(command, "@EventId", DbType.Guid, eventId);
             AddParameter(command, "@CorrelationId", DbType.String, correlationId, 100);
             AddParameter(command, "@SubmittedAtUtc", DbType.DateTime2, submittedAtUtc);
