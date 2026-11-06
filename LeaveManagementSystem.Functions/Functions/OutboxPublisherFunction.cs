@@ -9,7 +9,6 @@ namespace LeaveManagementSystem.Functions.Functions;
 
 public sealed class OutboxPublisherFunction
 {
-    private const string TopicName = "leave-events";
     private const int DefaultBatchSize = 50;
     private const int LockDurationSeconds = 300;
     private static readonly TimeSpan BaseRetryDelay = TimeSpan.FromSeconds(15);
@@ -71,7 +70,21 @@ public sealed class OutboxPublisherFunction
 
             foreach (var outboxMessage in messages)
             {
-                var serviceBusMessage = CreateServiceBusMessage(outboxMessage);
+                ServiceBusMessage serviceBusMessage;
+                try
+                {
+                    serviceBusMessage = CreateServiceBusMessage(outboxMessage);
+                }
+                catch (Exception exception) when (
+                    exception is JsonException or InvalidOperationException)
+                {
+                    await ScheduleFailureAsync(
+                        outboxMessage,
+                        lockId,
+                        exception,
+                        cancellationToken);
+                    continue;
+                }
 
                 if (messageBatch!.TryAddMessage(serviceBusMessage))
                 {
@@ -118,7 +131,7 @@ public sealed class OutboxPublisherFunction
 
     private async Task SendBatchAsync(
         ServiceBusMessageBatch messageBatch,
-        IReadOnlyList<LeaveManagementSystem.Application.Models.Outbox.OutboxMessageToPublish> batchMessages,
+        IReadOnlyList<OutboxMessageToPublish> batchMessages,
         Guid lockId,
         CancellationToken cancellationToken)
     {
@@ -191,7 +204,7 @@ public sealed class OutboxPublisherFunction
     }
 
     private static ServiceBusMessage CreateServiceBusMessage(
-        LeaveManagementSystem.Application.Models.Outbox.OutboxMessageToPublish outboxMessage)
+        OutboxMessageToPublish outboxMessage)
     {
         using var document = JsonDocument.Parse(outboxMessage.Payload);
         var message = new ServiceBusMessage(BinaryData.FromString(outboxMessage.Payload))
