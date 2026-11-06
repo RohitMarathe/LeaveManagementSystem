@@ -23,4 +23,10 @@ public sealed class OutboxMessage
     public DateTime? NextAttemptAtUtc { get; set; }
 
     public string? LastError { get; set; }
+
+    public Guid? LockId { get; set; }
+
+    public DateTime? LockedUntilUtc { get; set; }
+
+    public DateTime? FailedAtUtc { get; set; }
 }
