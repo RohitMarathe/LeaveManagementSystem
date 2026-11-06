@@ -1,6 +1,8 @@
 <Solution>
   <Project Path="LeaveManagementSystem.API/LeaveManagementSystem.API.csproj" />
   <Project Path="LeaveManagementSystem.Application/LeaveManagementSystem.Application.csproj" />
+  <Project Path="LeaveManagementSystem.Contracts/LeaveManagementSystem.Contracts.csproj" Id="4813a700-d79b-46a5-9f92-9168fcc9fe22" />
   <Project Path="LeaveManagementSystem.Domain/LeaveManagementSystem.Domain.csproj" />
+  <Project Path="LeaveManagementSystem.Functions/LeaveManagementSystem_Functions.csproj" />
   <Project Path="LeaveManagementSystem.Infrastructure/LeaveManagementSystem.Infrastructure.csproj" />
 </Solution>

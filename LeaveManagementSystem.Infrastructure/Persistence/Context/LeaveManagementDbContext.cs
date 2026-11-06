@@ -15,6 +15,8 @@ namespace LeaveManagementSystem.Infrastructure.Persistence.Context
 
         public DbSet<Document> Documents { get; set; }
 
+        public DbSet<LeaveRequest> LeaveRequests { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
