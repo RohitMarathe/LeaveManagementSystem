@@ -1,9 +1,6 @@
 using LeaveManagementSystem.Application.Interfaces.Repositories;
-using LeaveManagementSystem.Application.Interfaces.Services;
-using LeaveManagementSystem.Contracts;
 using LeaveManagementSystem.Domain.Common;
 using LeaveManagementSystem.Domain.Dtos.LeaveRequest;
-using LeaveManagementSystem.Domain.Entities;
 using LeaveManagementSystem.Domain.Enums;
 using Microsoft.Extensions.Logging;
 using System.Net;
@@ -12,23 +9,17 @@ namespace LeaveManagementSystem.Application.Services;
 
 public sealed class LeaveRequestService : ILeaveRequestService
 {
-    private const string QueueName = "leave-requests";
-    private const string LeaveRequestSubmittedEventType = "LeaveRequestSubmitted";
-
     private readonly IUnitOfWork _unitOfWork;
-    private readonly IOutboxWriter _outboxWriter;
-    private readonly IMessageBusService _messageBus;
+    private readonly ILeaveRequestSubmissionRepository _submissionRepository;
     private readonly ILogger<LeaveRequestService> _logger;
 
     public LeaveRequestService(
         IUnitOfWork unitOfWork,
-        IOutboxWriter outboxWriter,
-        IMessageBusService messageBus,
+        ILeaveRequestSubmissionRepository submissionRepository,
         ILogger<LeaveRequestService> logger)
     {
         _unitOfWork = unitOfWork;
-        _outboxWriter = outboxWriter;
-        _messageBus = messageBus;
+        _submissionRepository = submissionRepository;
         _logger = logger;
     }
 
@@ -77,83 +68,40 @@ public sealed class LeaveRequestService : ILeaveRequestService
         }
 
         var submittedAtUtc = DateTime.UtcNow;
-
-        var leaveRequest = new LeaveRequest
-        {
-            EmployeeId = employee.Id,
-            LeaveType = request.LeaveType.Trim(),
-            StartDate = request.StartDate,
-            EndDate = request.EndDate,
-            Reason = request.Reason.Trim(),
-            Status = LeaveRequestStatus.Pending,
-            SubmittedAtUtc = submittedAtUtc
-        };
-
-        await _unitOfWork.LeaveRequests.AddAsync(
-            leaveRequest,
-            cancellationToken);
-
-        // Save first to obtain the database-generated LeaveRequest ID.
-        // The Outbox event is added and saved in the same DbContext transaction
-        // in the follow-up SaveChanges call below only if we instead use a
-        // client-generated ID. For an identity ID, this first save would split
-        // the atomic operation, so use a transaction around both saves.
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
-
         var eventId = Guid.NewGuid();
         var correlationId = Guid.NewGuid().ToString("N");
+        var leaveType = request.LeaveType.Trim();
+        var reason = request.Reason.Trim();
 
-        var submittedEvent = new LeaveRequestSubmittedEvent
-        {
-            EventId = eventId,
-            SchemaVersion = 1,
-            CorrelationId = correlationId,
-            LeaveRequestId = leaveRequest.Id,
-            EmployeeId = employee.Id,
-            EmployeeName = $"{employee.FirstName} {employee.LastName}".Trim(),
-            EmployeeEmail = employee.Email,
-            LeaveType = leaveRequest.LeaveType,
-            StartDate = leaveRequest.StartDate,
-            EndDate = leaveRequest.EndDate,
-            SubmittedAtUtc = submittedAtUtc
-        };
-
-        _outboxWriter.Add(
+        // The stored procedure owns the transaction. It either inserts both
+        // the LeaveRequest and Outbox event, or inserts neither.
+        var leaveRequestId = await _submissionRepository.SubmitWithOutboxAsync(
+            employee.Id,
+            leaveType,
+            request.StartDate,
+            request.EndDate,
+            reason,
             eventId,
-            LeaveRequestSubmittedEventType,
-            submittedEvent,
-            submittedAtUtc);
-
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-        // Existing Queue workflow intentionally remains unchanged.
-        var message = new ProcessLeaveRequestMessage
-        {
-            MessageVersion = 1,
-            LeaveRequestId = leaveRequest.Id
-        };
-
-        await _messageBus.SendMessageAsync(
-            QueueName,
-            message,
+            correlationId,
+            submittedAtUtc,
             cancellationToken);
 
         _logger.LogInformation(
-            "Leave request submitted. Outbox event {EventId} recorded and existing Queue message published. LeaveRequestId: {LeaveRequestId}, EmployeeId: {EmployeeId}",
+            "Leave request and Outbox event committed. LeaveRequestId: {LeaveRequestId}, EventId: {EventId}, EmployeeId: {EmployeeId}",
+            leaveRequestId,
             eventId,
-            leaveRequest.Id,
             employee.Id);
 
         var responseDto = new LeaveRequestResponseDto
         {
-            Id = leaveRequest.Id,
-            EmployeeId = leaveRequest.EmployeeId,
-            LeaveType = leaveRequest.LeaveType,
-            StartDate = leaveRequest.StartDate,
-            EndDate = leaveRequest.EndDate,
-            Reason = leaveRequest.Reason,
-            Status = leaveRequest.Status.ToString(),
-            SubmittedAtUtc = leaveRequest.SubmittedAtUtc
+            Id = leaveRequestId,
+            EmployeeId = employee.Id,
+            LeaveType = leaveType,
+            StartDate = request.StartDate,
+            EndDate = request.EndDate,
+            Reason = reason,
+            Status = LeaveRequestStatus.Pending.ToString(),
+            SubmittedAtUtc = submittedAtUtc
         };
 
         return ApiResponse<LeaveRequestResponseDto>.Success(
