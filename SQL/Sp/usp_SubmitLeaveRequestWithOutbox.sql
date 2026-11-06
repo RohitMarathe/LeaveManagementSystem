@@ -21,10 +21,10 @@ GO
 
 CREATE OR ALTER PROCEDURE dbo.usp_SubmitLeaveRequestWithOutbox
     @EmployeeId       INT,
-    @LeaveType        NVARCHAR(50),
+    @LeaveType        NVARCHAR(MAX),
     @StartDate        DATE,
     @EndDate          DATE,
-    @Reason           NVARCHAR(1000),
+    @Reason           NVARCHAR(MAX),
     @EventId          UNIQUEIDENTIFIER,
     @CorrelationId    NVARCHAR(100),
     @SubmittedAtUtc   DATETIME2(7)
@@ -41,6 +41,12 @@ BEGIN
 
     IF NULLIF(LTRIM(RTRIM(@Reason)), N'') IS NULL
         THROW 51000, 'Reason is required.', 1;
+
+    IF LEN(LTRIM(RTRIM(@LeaveType))) > 50
+        THROW 51000, 'LeaveType cannot exceed 50 characters.', 1;
+
+    IF LEN(LTRIM(RTRIM(@Reason))) > 1000
+        THROW 51000, 'Reason cannot exceed 1000 characters.', 1;
 
     IF @StartDate IS NULL OR @EndDate IS NULL OR @StartDate > @EndDate
         THROW 51000, 'The leave date range is invalid.', 1;
