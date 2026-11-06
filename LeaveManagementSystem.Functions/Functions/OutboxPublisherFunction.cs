@@ -62,7 +62,7 @@ public sealed class OutboxPublisherFunction
         Guid lockId,
         CancellationToken cancellationToken)
     {
-        ServiceBusMessageBatch messageBatch;
+        ServiceBusMessageBatch? messageBatch = null;
         var batchMessages = new List<OutboxMessageToPublish>();
 
         try
@@ -73,7 +73,7 @@ public sealed class OutboxPublisherFunction
             {
                 var serviceBusMessage = CreateServiceBusMessage(outboxMessage);
 
-                if (messageBatch.TryAddMessage(serviceBusMessage))
+                if (messageBatch!.TryAddMessage(serviceBusMessage))
                 {
                     batchMessages.Add(outboxMessage);
                     continue;
@@ -82,12 +82,12 @@ public sealed class OutboxPublisherFunction
                 if (batchMessages.Count > 0)
                 {
                     await SendBatchAsync(messageBatch, batchMessages, lockId, cancellationToken);
-                    messageBatch.Dispose();
+                    messageBatch!.Dispose();
                     messageBatch = await _sender.CreateMessageBatchAsync(cancellationToken);
                     batchMessages = [];
                 }
 
-                if (!messageBatch.TryAddMessage(serviceBusMessage))
+                if (!messageBatch!.TryAddMessage(serviceBusMessage))
                 {
                     await ScheduleFailureAsync(
                         outboxMessage,
@@ -102,7 +102,7 @@ public sealed class OutboxPublisherFunction
                 }
             }
 
-            if (batchMessages.Count > 0)
+            if (batchMessages.Count > 0 && messageBatch is not null)
             {
                 await SendBatchAsync(messageBatch, batchMessages, lockId, cancellationToken);
             }
@@ -111,7 +111,7 @@ public sealed class OutboxPublisherFunction
         {
             if (messageBatch is not null)
             {
-                messageBatch.Dispose();
+                messageBatch?.Dispose();
             }
         }
     }
