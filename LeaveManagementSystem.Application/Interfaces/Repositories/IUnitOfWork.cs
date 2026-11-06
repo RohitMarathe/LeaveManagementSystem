@@ -1,4 +1,4 @@
-﻿using LeaveManagementSystem.Infrastructure.Persistence.Entities;
+using LeaveManagementSystem.Application.Interfaces.Services;
 
 namespace LeaveManagementSystem.Application.Interfaces.Repositories
 {
@@ -7,8 +7,6 @@ namespace LeaveManagementSystem.Application.Interfaces.Repositories
         IEmployeeRepository Employees { get; }
 
         ILeaveRequestRepository LeaveRequests { get; }
-
-        void AddOutboxMessage(OutboxMessage message);
 
         Task<int> SaveChangesAsync(
             CancellationToken cancellationToken = default);
