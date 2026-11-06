@@ -42,6 +42,14 @@ public sealed class LeaveRequestService : ILeaveRequestService
                 statusCode: HttpStatusCode.BadRequest);
         }
 
+        if (request.LeaveType.Trim().Length > 50 ||
+            request.Reason.Trim().Length > 1000)
+        {
+            return ApiResponse<LeaveRequestResponseDto>.Failure(
+                message: "Leave type cannot exceed 50 characters and reason cannot exceed 1000 characters.",
+                statusCode: HttpStatusCode.BadRequest);
+        }
+
         var employee = await _unitOfWork.Employees.GetByIdAsync(
             request.EmployeeId,
             cancellationToken);
