@@ -1,0 +1,15 @@
+meta {
+  name: Get All Employees
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/Employee
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: 200
+}
