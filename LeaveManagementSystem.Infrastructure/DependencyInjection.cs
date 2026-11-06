@@ -1,4 +1,5 @@
 ﻿using Azure.Identity;
+using Azure.Messaging.ServiceBus;
 using Azure.Storage.Blobs;
 using LeaveManagementSystem.Application.Interfaces.Repositories;
 using LeaveManagementSystem.Application.Interfaces.Services;
@@ -59,6 +60,28 @@ public static class DependencyInjection
 
         // Register Blob Storage Service
         services.AddScoped<IStorageService, BlobStorageService>();
+
+        services.AddSingleton<ServiceBusClient>(sp =>
+        {
+            var namespaceName =
+                configuration["ServiceBus:FullyQualifiedNamespace"]
+                ?? throw new InvalidOperationException(
+                    "Service Bus namespace is not configured.");
+
+            return new ServiceBusClient(
+                namespaceName,
+                new DefaultAzureCredential());
+        });
+
+        // Register ServiceBusSender for the "leave-requests" queue
+        services.AddSingleton<ServiceBusSender>(sp =>
+        {
+            var client = sp.GetRequiredService<ServiceBusClient>();
+
+            return client.CreateSender("leave-requests");
+        });
+
+        services.AddScoped<IMessageBusService, ServiceBusMessageBusService>();
 
         return services;
     }

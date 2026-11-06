@@ -1,7 +1,6 @@
 using LeaveManagementSystem.API.Middleware;
 using LeaveManagementSystem.Application;
 using LeaveManagementSystem.Infrastructure;
-using Microsoft.Extensions.Logging.ApplicationInsights;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,27 +11,22 @@ builder.Services.AddControllers();
 builder.Services.AddApplication(); // Register application services
 builder.Services.AddInfrastructure(builder.Configuration); // Register infrastructure services
 
+// Register Swagger services BEFORE Build()
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
 // Configuring the Application Insights
 builder.Services.AddApplicationInsightsTelemetry();
-
-builder.Logging.AddConsole().AddApplicationInsights(
-    configureTelemetryConfiguration: (config) =>
-    {
-        var connectionString = builder.Configuration["ApplicationInsights:ConnectionString"];
-        if (!string.IsNullOrWhiteSpace(connectionString))
-        {
-            config.ConnectionString = connectionString;
-        }
-    },
-    configureApplicationInsightsLoggerOptions: (options) => { }
-);
-var logLevel = builder.Configuration.GetValue<LogLevel>("Logging:LogLevel:Default");
-
-builder.Logging.AddFilter<ApplicationInsightsLoggerProvider>(string.Empty, logLevel);
 
 var app = builder.Build();
 
 app.UseGlobalExceptionMiddleware();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
 app.UseHttpsRedirection();
 
