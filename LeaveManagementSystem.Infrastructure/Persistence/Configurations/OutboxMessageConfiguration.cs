@@ -46,10 +46,20 @@ public sealed class OutboxMessageConfiguration
             .HasDefaultValue(0)
             .IsRequired();
 
+        builder.Property(message => message.LockId);
+
+        builder.Property(message => message.LockedUntilUtc)
+            .HasColumnType("datetime2");
+
+        builder.Property(message => message.FailedAtUtc)
+            .HasColumnType("datetime2");
+
         builder.HasIndex(message => new
         {
             message.ProcessedAtUtc,
+            message.FailedAtUtc,
             message.NextAttemptAtUtc,
+            message.LockedUntilUtc,
             message.CreatedAtUtc
         })
         .HasDatabaseName("IX_OutboxMessages_PublishingStatus");
