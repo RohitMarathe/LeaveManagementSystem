@@ -5,6 +5,7 @@ using LeaveManagementSystem.Application.Interfaces.Repositories;
 using LeaveManagementSystem.Application.Interfaces.Services;
 using LeaveManagementSystem.Application.Services;
 using LeaveManagementSystem.Infrastructure.Configuration;
+using LeaveManagementSystem.Infrastructure.Persistence;
 using LeaveManagementSystem.Infrastructure.Persistence.Context;
 using LeaveManagementSystem.Infrastructure.Persistence.Repositories;
 using LeaveManagementSystem.Infrastructure.Services;
@@ -35,6 +36,7 @@ public static class DependencyInjection
         services.AddScoped<IEmployeeRepository, EmployeeRepository>();
 
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+        services.AddScoped<IOutboxWriter, OutboxWriter>();
 
         services.AddScoped<IDocumentService, DocumentService>();
         services.AddScoped<IDocumentRepository, DocumentRepository>();
@@ -58,7 +60,6 @@ public static class DependencyInjection
             return new BlobServiceClient(serviceUri, new DefaultAzureCredential());
         });
 
-        // Register Blob Storage Service
         services.AddScoped<IStorageService, BlobStorageService>();
 
         services.AddSingleton<ServiceBusClient>(sp =>
@@ -73,11 +74,11 @@ public static class DependencyInjection
                 new DefaultAzureCredential());
         });
 
-        // Register ServiceBusSender for the "leave-requests" queue
+        // Existing Queue workflow registration. The Topic publisher will
+        // have its own sender abstraction in the publishing phase.
         services.AddSingleton<ServiceBusSender>(sp =>
         {
             var client = sp.GetRequiredService<ServiceBusClient>();
-
             return client.CreateSender("leave-requests");
         });
 
@@ -86,4 +87,3 @@ public static class DependencyInjection
         return services;
     }
 }
-
