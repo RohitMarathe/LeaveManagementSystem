@@ -39,4 +39,7 @@ builder.Services.AddScoped<IOutboxPublisherRepository, OutboxPublisherRepository
 builder.Services.AddSingleton(_ =>
     new ServiceBusClient(serviceBusNamespace, new DefaultAzureCredential()));
 
+builder.Services.AddSingleton(serviceBusClient =>
+    serviceBusClient.GetRequiredService<ServiceBusClient>().CreateSender("leave-events"));
+
 builder.Build().Run();
