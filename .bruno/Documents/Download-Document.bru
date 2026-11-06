@@ -1,0 +1,11 @@
+meta {
+  name: Download Document
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/api/Document/{{documentId}}
+  body: none
+  auth: none
+}
