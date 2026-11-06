@@ -1,4 +1,5 @@
 using LeaveManagementSystem.Application.Interfaces.Repositories;
+using LeaveManagementSystem.Application.Interfaces.Services;
 using LeaveManagementSystem.Domain.Common;
 using LeaveManagementSystem.Domain.Dtos.LeaveRequest;
 using LeaveManagementSystem.Domain.Enums;
