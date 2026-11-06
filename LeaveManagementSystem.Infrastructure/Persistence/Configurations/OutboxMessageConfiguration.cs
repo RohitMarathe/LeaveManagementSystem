@@ -13,6 +13,9 @@ public sealed class OutboxMessageConfiguration
 
         builder.HasKey(message => message.Id);
 
+        builder.Property(message => message.Id)
+            .ValueGeneratedNever();
+
         builder.Property(message => message.EventType)
             .HasMaxLength(200)
             .IsRequired();
@@ -27,6 +30,7 @@ public sealed class OutboxMessageConfiguration
 
         builder.Property(message => message.CreatedAtUtc)
             .HasColumnType("datetime2")
+            .HasDefaultValueSql("SYSUTCDATETIME()")
             .IsRequired();
 
         builder.Property(message => message.ProcessedAtUtc)
@@ -39,6 +43,7 @@ public sealed class OutboxMessageConfiguration
             .HasMaxLength(2000);
 
         builder.Property(message => message.Attempts)
+            .HasDefaultValue(0)
             .IsRequired();
 
         builder.HasIndex(message => new
