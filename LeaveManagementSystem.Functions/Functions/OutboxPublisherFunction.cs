@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Azure.Messaging.ServiceBus;
 using LeaveManagementSystem.Application.Interfaces.Repositories;
+using LeaveManagementSystem.Application.Models.Outbox;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 
@@ -20,11 +21,11 @@ public sealed class OutboxPublisherFunction
 
     public OutboxPublisherFunction(
         IOutboxPublisherRepository outboxRepository,
-        ServiceBusClient serviceBusClient,
+        ServiceBusSender sender,
         ILogger<OutboxPublisherFunction> logger)
     {
         _outboxRepository = outboxRepository;
-        _sender = serviceBusClient.CreateSender(TopicName);
+        _sender = sender;
         _logger = logger;
     }
 
@@ -57,12 +58,12 @@ public sealed class OutboxPublisherFunction
     }
 
     private async Task PublishClaimedMessagesAsync(
-        IReadOnlyList<LeaveManagementSystem.Application.Models.Outbox.OutboxMessageToPublish> messages,
+        IReadOnlyList<OutboxMessageToPublish> messages,
         Guid lockId,
         CancellationToken cancellationToken)
     {
-        ServiceBusMessageBatch? messageBatch = null;
-        var batchMessages = new List<LeaveManagementSystem.Application.Models.Outbox.OutboxMessageToPublish>();
+        ServiceBusMessageBatch messageBatch;
+        var batchMessages = new List<OutboxMessageToPublish>();
 
         try
         {
@@ -81,7 +82,7 @@ public sealed class OutboxPublisherFunction
                 if (batchMessages.Count > 0)
                 {
                     await SendBatchAsync(messageBatch, batchMessages, lockId, cancellationToken);
-                    await messageBatch.DisposeAsync();
+                    messageBatch.Dispose();
                     messageBatch = await _sender.CreateMessageBatchAsync(cancellationToken);
                     batchMessages = [];
                 }
@@ -101,7 +102,7 @@ public sealed class OutboxPublisherFunction
                 }
             }
 
-            if (batchMessages.Count > 0 && messageBatch is not null)
+            if (batchMessages.Count > 0)
             {
                 await SendBatchAsync(messageBatch, batchMessages, lockId, cancellationToken);
             }
@@ -110,7 +111,7 @@ public sealed class OutboxPublisherFunction
         {
             if (messageBatch is not null)
             {
-                await messageBatch.DisposeAsync();
+                messageBatch.Dispose();
             }
         }
     }
