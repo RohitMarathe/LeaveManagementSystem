@@ -12,6 +12,8 @@ public static class DependencyInjection
     {
         services.AddScoped<IEmployeeService, EmployeeService>();
 
+        services.AddScoped<ILeaveRequestService, LeaveRequestService>();
+
         services.AddAutoMapper(cfg => { }, typeof(EmployeeMappingProfile).Assembly);
 
         return services;

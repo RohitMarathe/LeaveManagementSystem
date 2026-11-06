@@ -9,6 +9,8 @@ public class UnitOfWork : IUnitOfWork
 
     private IEmployeeRepository? _employeeRepository;
 
+    private ILeaveRequestRepository? _leaveRequestRepository;
+
     public UnitOfWork(LeaveManagementDbContext context)
     {
         _context = context;
@@ -20,6 +22,15 @@ public class UnitOfWork : IUnitOfWork
         {
             _employeeRepository ??= new EmployeeRepository(_context);
             return _employeeRepository;
+        }
+    }
+
+    public ILeaveRequestRepository LeaveRequests
+    {
+        get
+        {
+            _leaveRequestRepository ??= new LeaveRequestRepository(_context);
+            return _leaveRequestRepository;
         }
     }
 
