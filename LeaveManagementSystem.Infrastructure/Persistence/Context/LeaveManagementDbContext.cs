@@ -1,4 +1,5 @@
 ﻿using LeaveManagementSystem.Domain.Entities;
+using LeaveManagementSystem.Infrastructure.Persistence.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace LeaveManagementSystem.Infrastructure.Persistence.Context
@@ -17,7 +18,7 @@ namespace LeaveManagementSystem.Infrastructure.Persistence.Context
 
         public DbSet<LeaveRequest> LeaveRequests { get; set; }
 
-        public DbSet<LeaveManagementSystem.Infrastructure.Persistence.Entities.OutboxMessage> OutboxMessages { get; set; }
+        public DbSet<OutboxMessage> OutboxMessages { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
